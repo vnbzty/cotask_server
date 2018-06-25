@@ -30,8 +30,8 @@ app.get('/', function(req, res, next) {
   res.send("get request");
 });
 
-schedule_list = [2,1,3,0,4];
-schedule_point = 0;
+var schedule_list = [];
+var schedule_point = 0;
 var list = [];
 var locks = require('locks');
 var waiting = locks.createMutex();
@@ -50,7 +50,7 @@ function find(){
 function check(){
   list.forEach(function(item, index, array){
     if (item.task_id == schedule_list[schedule_point]){
-      console.log('waiting unlock');
+      // console.log('waiting unlock');
       waiting.unlock();
       return;
     }
@@ -59,26 +59,32 @@ function check(){
 
 function run(task){
     setTimeout(function(){
-      task.socket.emit('finish task', {'task_id': task.task_id, 'start_time': task.start_time});
+      task.socket.emit('finish task', {'task_id': task.task_id, 'start_time': task.start_time, "number": task.number});
       console.log('send result');
-      console.log('running unlock');
+      // console.log('running unlock');
       running.unlock();
       schedule_point = schedule_point + 1;
+      if (schedule_point >= task.number){
+        schedule_point = 0;
+        schedule_list = []
+        list = [];
+      }
       check();
     }, task.time);
 }
 
 function add_task(task){
+  schedule_list.push(task.task_id)
   list.push(task);
   console.log('add task', task.task_id);
   if (task.task_id == schedule_list[schedule_point]){
-    console.log('waiting unlock');
+    // console.log('waiting unlock');
     waiting.unlock();
   }
   running.lock(function(){
-    console.log('running lock');
+    // console.log('running lock');
     waiting.lock(function(){
-      console.log('waiting lock');
+      // console.log('waiting lock');
       find();
     })
   });
