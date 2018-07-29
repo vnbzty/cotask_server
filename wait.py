@@ -9,9 +9,9 @@ def main():
     image_name = argv[1]
     mobile_number = argv[2]
 
-    with open('file_name', 'rb') as f:
+    with open('file_name', 'r') as f:
         file_name = pickle.load(f)
-    with open('face_server', 'rb') as f:
+    with open('face_server', 'r') as f:
         processing_time = pickle.load(f)
 
     index = file_name.index(image_name)
