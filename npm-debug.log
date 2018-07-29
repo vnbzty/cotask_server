@@ -1,7 +1,7 @@
 0 info it worked if it ends with ok
 1 verbose cli [ '/usr/bin/node6', '/usr/bin/npm-default', 'start' ]
 2 info using npm@3.10.10
-3 info using node@v6.14.1
+3 info using node@v6.14.3
 4 verbose run-script [ 'prestart', 'start', 'poststart' ]
 5 info lifecycle myapp@0.0.0~prestart: myapp@0.0.0
 6 silly lifecycle myapp@0.0.0~prestart: no script for prestart, continuing
@@ -24,9 +24,9 @@
 14 verbose stack     at Process.ChildProcess._handle.onexit (internal/child_process.js:230:5)
 15 verbose pkgid myapp@0.0.0
 16 verbose cwd /home/vnb/code/myapp
-17 error Linux 4.4.126-48-default
+17 error Linux 4.4.138-59-default
 18 error argv "/usr/bin/node6" "/usr/bin/npm-default" "start"
-19 error node v6.14.1
+19 error node v6.14.3
 20 error npm  v3.10.10
 21 error code ELIFECYCLE
 22 error myapp@0.0.0 start: `node ./bin/www`

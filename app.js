@@ -30,75 +30,83 @@ app.get('/', function(req, res, next) {
   res.send("get request");
 });
 
-var schedule_list = [];
-var schedule_point = 0;
-var list = [];
+var schedule_list = []
+var schedule_point = 0
+var list = []
+var visit = []
+
 var locks = require('locks');
 var waiting = locks.createMutex();
 var running = locks.createMutex();
+const spawn = require("child_process").spawn;
+const server_number = 0
+var fs = require('fs')
 
-waiting.lock(function(){});
+running.lock(function(){})
 
 function find(){
-  list.forEach(function(item, index, array){
-    if (item.task_id == schedule_list[schedule_point]){
+  for (var i = 0, len = list.length; i < len; i++) {
+    item = list[i]
+    console.log(item.mobile_number)
+    console.log(visit[i])
+    console.log(schedule_point)
+    console.log(schedule_list[schedule_point])
+    if (schedule_point < schedule_list.length && visit[i] == 0 && item.mobile_number == schedule_list[schedule_point]){
+      visit[i] = 1
+      schedule_point = schedule_point + 1;
       run(item);
       return;
     }
-  });
+  }
 }
-function check(){
-  list.forEach(function(item, index, array){
-    if (item.task_id == schedule_list[schedule_point]){
-      // console.log('waiting unlock');
-      waiting.unlock();
-      return;
+
+function run(task){
+  var pythonProcess = spawn('python',["wait.py", task.image_name, task.mobile_number]);
+  pythonProcess.stdout.on('data', (data) => {
+    console.log(data.toString());
+    task.socket.emit('face detect', {'mobile_number': task.mobile_number, 'image_name': task.image_name, 'start_time': task.start_time});
+    console.log('send result');
+    console.log('running unlock')
+    running.unlock();
+    if (running.tryLock()){
+      console.log('running lock 2')
+      find()
     }
   });
 }
 
-function run(task){
-    setTimeout(function(){
-      task.socket.emit('finish task', {'task_id': task.task_id, 'start_time': task.start_time, "number": task.number});
-      console.log('send result');
-      // console.log('running unlock');
-      running.unlock();
-      schedule_point = schedule_point + 1;
-      if (schedule_point >= task.number){
-        schedule_point = 0;
-        schedule_list = []
-        list = [];
-      }
-      check();
-    }, task.time);
+function add_task(task){
+  list.push(task)
+  visit.push(0)
+  console.log('add task', task.image_name);
+  if (schedule_point < schedule_list.length && task.mobile_number == schedule_list[schedule_point]){
+    if (running.tryLock()){
+      console.log('running lock 1')
+      find()
+    }
+  }
 }
 
-function add_task(task){
-  schedule_list.push(task.task_id)
-  list.push(task);
-  console.log('add task', task.task_id);
-  if (task.task_id == schedule_list[schedule_point]){
-    // console.log('waiting unlock');
-    waiting.unlock();
-  }
-  running.lock(function(){
-    // console.log('running lock');
-    waiting.lock(function(){
-      // console.log('waiting lock');
-      find();
-    })
-  });
-}
 
 io.on('connection',function(socket){
   console.log('connection');
   socket.on('disconnect', function(){
     console.log('disconnect');
   });
-  socket.on('new task', function(task){
-    console.log(task);
-    task.socket = socket;
-    add_task(task);
+
+  socket.on('upload', function(image){
+    image.socket = socket
+    add_task(image)
+  });
+
+  socket.on('offload', function(data){
+    running.unlock()
+    schedule_point = 0;
+    list = []
+    visit = []
+    var obj = JSON.parse(fs.readFileSync(data.file_name, 'utf8'));
+    schedule_list = obj['schedule'][server_number]
+    console.log(schedule_list)
   });
 });
 
