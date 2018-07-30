@@ -97,13 +97,12 @@ io.on('connection',function(socket){
 
   socket.on('upload', function(image){
     image.socket = socket
-    socket.emit('face detect', {'event': 'upload', 'mobile_number': task.mobile_number, 'image_name': task.image_name, 'start_time': task.start_time});
+    socket.emit('face detect', {'event': 'upload', 'mobile_number': image.mobile_number, 'image_name': image.image_name, 'start_time': image.start_time});
     add_task(image)
   });
 
   socket.on('schedule', function(data){
-    socket.emit('schedule', {'event': 'schedule', 'mobile_number': data.mobile_number, 'start_time': task.start_time});
-    add_task(image)
+    socket.emit('schedule', {'event': 'schedule', 'mobile_number': data.mobile_number, 'start_time': data.start_time});
   });
 
   socket.on('offload', function(data){
