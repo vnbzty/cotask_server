@@ -61,10 +61,11 @@ function find(){
 }
 
 function run(task){
+  task.socket.emit('face detect', {'event': 'schedule', 'mobile_number': task.mobile_number, 'image_name': task.image_name, 'start_time': task.start_time});
   var pythonProcess = spawn('python',["wait.py", task.image_name, task.mobile_number]);
   pythonProcess.stdout.on('data', (data) => {
     console.log(data.toString());
-    task.socket.emit('face detect', {'mobile_number': task.mobile_number, 'image_name': task.image_name, 'start_time': task.start_time});
+    task.socket.emit('face detect', {'event': 'finish', 'mobile_number': task.mobile_number, 'image_name': task.image_name, 'start_time': task.start_time});
     console.log('send result');
     console.log('running unlock')
     running.unlock();
@@ -96,11 +97,22 @@ io.on('connection',function(socket){
 
   socket.on('upload', function(image){
     image.socket = socket
+    socket.emit('face detect', {'event': 'upload', 'mobile_number': task.mobile_number, 'image_name': task.image_name, 'start_time': task.start_time});
+    add_task(image)
+  });
+
+  socket.on('schedule', function(data){
+    socket.emit('schedule', {'event': 'schedule', 'mobile_number': data.mobile_number, 'start_time': task.start_time});
     add_task(image)
   });
 
   socket.on('offload', function(data){
-    running.unlock()
+    if (running.tryLock()){
+      running.unlock()
+    }
+    else{
+      running.unlock()
+    }
     schedule_point = 0;
     list = []
     visit = []
