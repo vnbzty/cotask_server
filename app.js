@@ -58,14 +58,18 @@ function find(){
       return;
     }
   }
+  running.unlock()
 }
 
 function run(task){
-  task.socket.emit('face detect', {'event': 'schedule', 'mobile_number': task.mobile_number, 'image_name': task.image_name, 'start_time': task.start_time});
-  var pythonProcess = spawn('python',["wait.py", task.image_name, task.mobile_number]);
+  task.socket.emit('face detect', {'event': 'schedule', 'timestamp':process.uptime()*1000, 'server_number':server_number, 'mobile_number': task.mobile_number});
+  var t1 = process.uptime() * 1000
+  var pythonProcess = spawn('python',["wait.py", task.image_name]);
   pythonProcess.stdout.on('data', (data) => {
     console.log(data.toString());
-    task.socket.emit('face detect', {'event': 'finish', 'mobile_number': task.mobile_number, 'image_name': task.image_name, 'start_time': task.start_time});
+    task.socket.emit('face detect', {'event': 'finish', 'timestamp':0, 'server_number':server_number, 'mobile_number': task.mobile_number});
+    var t2 = process.uptime() * 1000
+    console.log(t2 - t1)
     console.log('send result');
     console.log('running unlock')
     running.unlock();
@@ -97,12 +101,13 @@ io.on('connection',function(socket){
 
   socket.on('upload', function(image){
     image.socket = socket
-    socket.emit('face detect', {'event': 'upload', 'mobile_number': image.mobile_number, 'image_name': image.image_name, 'start_time': image.start_time});
+    socket.emit('face detect', {'event': 'upload', 'timestamp':process.uptime()*1000,'server_number':server_number, 'mobile_number': image.mobile_number});
     add_task(image)
   });
 
   socket.on('schedule', function(data){
-    socket.emit('schedule', {'event': 'schedule', 'mobile_number': data.mobile_number, 'start_time': data.start_time});
+    console.log(data)
+    socket.emit('schedule', {'timestamp':process.uptime()*1000, 'server_number':server_number, 'mobile_number': data.mobile_number});
   });
 
   socket.on('offload', function(data){

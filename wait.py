@@ -6,23 +6,27 @@ def main():
     start = time.time()
 
     argv = sys.argv
-    image_name = argv[1]
-    mobile_number = argv[2]
+
+    tmp = ''
+    for i in xrange(1, len(argv)):
+        tmp += argv[i]
+    image_name = tmp[0:].split(',')
 
     with open('file_name', 'r') as f:
         file_name = pickle.load(f)
     with open('face_server', 'r') as f:
         processing_time = pickle.load(f)
 
-    index = file_name.index(image_name)
-    sleep_time = processing_time[index]
-    print 'sleep time', sleep_time
-    time.sleep(sleep_time)
+    for name in image_name:
+        index = file_name.index(name)
+        sleep_time = processing_time[index]
+        # print 'sleep time', sleep_time
+        time.sleep(sleep_time)
 
     done = time.time();
     elapse = done - start
 
-    print mobile_number, image_name,elapse
+    print image_name, elapse
     sys.stdout.flush()
 
 if __name__ == '__main__':
