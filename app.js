@@ -47,10 +47,10 @@ running.lock(function(){})
 function find(){
   for (var i = 0, len = list.length; i < len; i++) {
     item = list[i]
-    console.log(item.mobile_number)
-    console.log(visit[i])
-    console.log(schedule_point)
-    console.log(schedule_list[schedule_point])
+    // console.log(item.mobile_number)
+    // console.log(visit[i])
+    // console.log(schedule_point)
+    // console.log(schedule_list[schedule_point])
     if (schedule_point < schedule_list.length && visit[i] == 0 && item.mobile_number == schedule_list[schedule_point]){
       visit[i] = 1
       schedule_point = schedule_point + 1;
@@ -106,7 +106,6 @@ io.on('connection',function(socket){
   });
 
   socket.on('schedule', function(data){
-    console.log(data)
     socket.emit('schedule', {'timestamp':process.uptime()*1000, 'server_number':server_number, 'mobile_number': data.mobile_number});
   });
 
